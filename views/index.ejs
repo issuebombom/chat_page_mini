@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+  <title>CHAT</title>
+</head>
+<style>
+  body {
+    text-align: center;
+    background-color: #2b2b2b;
+  }
+
+  .box {
+    width: 500px;
+    height: 100vh;
+    display: inline-block;
+    background-color: rgb(69, 130, 253);
+  }
+
+  .chat {
+    overflow: auto;
+  }
+
+  .msgLine {
+    padding: 5px;
+  }
+
+  .me {
+    background-color: aqua;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 70%;
+    text-align: left;
+  }
+
+  .userName {
+    font-size: 10px;
+    color: rgb(206, 206, 206);
+  }
+
+  .msgBox {
+    background-color: bisque;
+    padding: 10px;
+    border-radius: 5px;
+    max-width: 70%;
+  }
+
+  .chat {
+    height: 97vh;
+  }
+
+  .form-container {
+    height: 3vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgb(58, 120, 246);
+  }
+
+  .msgLine {
+    display: block;
+  }
+
+  #chat-form {
+    width: 100%;
+  }
+</style>
+
+<body>
+  <div class="box">
+    <div class="chat">
+      <div id="msg">
+        <div class="notification-container" id="notification-container">
+          <p></p>
+        </div>
+      </div>
+    </div>
+    <div class="form-container">
+      <form id="chat-form" onsubmit="return false">
+        <input id="input-box" type="text" size="50" contenteditable="true" autocomplete="off">
+        <input type="submit" id="send-msg" value="보내기">
+      </form>
+    </div>
+  </div>
+  <script>
+    const socket = io.connect('/');
+
+    $(document).ready(function () {
+      const chatForm = document.getElementById('chat-form');
+      chatForm.addEventListener('submit', () => send());
+    });
+
+    socket.on('SEND', (data) => {
+      const { msg, user } = data;
+
+      const msgLine = $('<div class="msgLine">');
+      const userName = $('<div class="userName">');
+      const msgBox = $('<div class="msgBox">');
+
+      userName.append(user);
+      msgLine.append(userName);
+
+      msgBox.append(msg);
+      msgBox.css('display', 'inline-block');
+      msgLine.css('text-align', 'left');
+      msgLine.append(msgBox);
+      $('#msg').append(msgLine);
+    });
+
+    function send() {
+      const chat = $('.chat');
+      const scrollHeight = chat.prop("scrollHeight");
+      const msgText = $('#input-box');
+
+      if (msgText === '') return;
+
+      socket.emit('SEND', { msg: msgText.val(), user: socket.id });
+      const msgLine = $('<div class="msgLine">');
+      const msgBox = $('<div class="me">');
+
+      msgBox.append(msgText.val());
+      msgBox.css('display', 'inline-block');
+      msgLine.css('text-align', 'right');
+      msgLine.append(msgBox);
+
+      $('#msg').append(msgLine);
+      msgText.val('');
+      chat.scrollTop(scrollHeight); // 보내기 완료 시 스크롤 최하단 이동
+    }
+  </script>
+</body>
+
+</html>
