@@ -28,7 +28,7 @@ let socketList = []; // 채팅에 접속한 모든 유저의 소켓을 보관
 
 io.on('connection', (socket) => {
   socketList.push(socket);
-  console.log(`${socket.id}유저가 접속했습니다.`);
+  console.log(`${socket.id}유저가 접속했습니다. (현재 접속자: ${socketList.length}명)`);
 
   // 누군가 메시지를 등록하면 작성자를 제외한 유저에게 emit합니다.
   socket.on('SEND', (data) => {
@@ -38,6 +38,11 @@ io.on('connection', (socket) => {
         item.emit('SEND', { msg, user });
       }
     });
+  });
+
+  socket.on('disconnect', function () {
+    socketList.splice(socketList.indexOf(socket), 1);
+    console.log(`${socket.id}유저가 퇴장했습니다. (현재 접속자: ${socketList.length}명)`);
   });
 });
 
